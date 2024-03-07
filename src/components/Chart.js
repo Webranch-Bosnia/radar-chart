@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 // NPM
 import { Radar } from "react-chartjs-2";
 import {
@@ -14,31 +14,45 @@ ChartJS.register(PointElement, LineElement, RadialLinearScale, Tooltip, Filler);
 
 //
 const RadarChart = () => {
-  // Data
-  const data = {
-    labels: [
-      ["Sales", "80/100"],
-      ["Customer Support", "50/100"],
-      ["Information Technology", "60/100"],
-      ["Administration", "20/10"],
-    ],
-    datasets: [
-      {
-        data: [3.5, 6, 4, 1.7],
-        borderWidth: 3,
-        borderColor: ["#7b161a"],
-        backgroundColor: "rgba(123, 22,	26, 0.3)",
-      },
-    ],
+  const [metaScore, setMetaScore] = useState({ labes: [], datasets: [] })
+  const readCookie = () => {
+    let cookieValue = document.cookie.replace(/(?:(?:^|.*;\s*)metaScore\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+
+    return cookieValue.slice(1, -1);
   };
 
+  useEffect(() => {
+    const metaScoreTmp = readCookie();
+    const meta = JSON.parse(metaScoreTmp)
+
+    if (!metaScore.datasets.data) {
+      const labels = Object.entries(meta).map(([key, value]) => {
+        const newValue = value * 10
+        return [key, `${newValue} / 100`]
+      })
+      const data = Object.keys(meta).map((v, i) => {
+        return meta[v]
+      })
+      setMetaScore({
+        labels,
+        datasets: [
+          {
+            data,
+            borderWidth: 3,
+            borderColor: ["#7b161a"],
+            backgroundColor: "rgba(123, 22,	26, 0.3)",
+          },
+        ],
+      })
+    }
+  }, [metaScore.datasets.data])
   // Options
   const options = {
     scale: {
       min: 1,
-      max: 6,
+      max: 10,
       ticks: {
-        stepSize: 0.5,
+        stepSize: 1,
       },
     },
     scales: {
@@ -75,7 +89,7 @@ const RadarChart = () => {
         background: "#f5f3f3",
       }}
     >
-      <Radar data={data} options={options} />
+      <Radar data={metaScore} options={options} />
     </div>
   );
 };
